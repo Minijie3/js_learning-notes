@@ -8,6 +8,11 @@ const jonas = `I'm ${age} years old`;
 console.log(jonas, typeof joans);// undefined
 console.log(jonas.substring(1, 5), jonas.indexOf('a', 2))// 'm 1 9
 
+{
+    var notPrivate = 46;
+}
+console.log(notPrivate);
+
 let test = '0test'
 console.log(parseInt(test))// 0
 

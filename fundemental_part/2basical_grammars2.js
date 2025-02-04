@@ -20,6 +20,10 @@ const arrFuncParam = (lover_one, lover_two) => {
 };
 
 console.log(arrFuncParam('三千铁块', '孙浩宇'));
+console.log(arrFuncParam);// [Function: arrFuncParam]
+/*
+NOTICE: function is also value and object!
+*/
 
 let testString = 'how are u';
 const testArrayEle = new Array(testString, 123);

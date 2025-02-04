@@ -23,3 +23,19 @@ console.log(Symbol('of') == Symbol('of')) // false
 
 console.log("18" == 18, "18" === 18)// true false
 
+/*
+There are primitive types and reference types in JavaScript.
+Primitive types are stored directly in the variable, while reference types are stored in the memory 
+heap and the variable is a pointer to the memory location.
+So:
+*/
+const arr1 = [1, 2, 3];
+const arr2 = [1, 2, 3];
+console.log(arr1 == arr2);// false
+console.log(arr1 === arr2);// false
+// So the assignment of reference types is not by value, but by 'address'.
+// so if 
+const arr3 = arr1;
+console.log(arr3 === arr1);// true
+arr3[0] = 4;
+console.log(arr1);// [ 4, 2, 3 ]

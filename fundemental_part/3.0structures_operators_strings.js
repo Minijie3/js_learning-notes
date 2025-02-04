@@ -256,14 +256,20 @@ console.log(email === normalizedEmail);
 
 const announcement =
     'All passengers come to boarding door 23. Boarding door 23!';
-
 console.log(announcement.replace('door', 'gate'));
 console.log(announcement.replaceAll('door', 'gate'));
-
 // Alternative solution to replaceAll with regular expression
 console.log(announcement.replace(/door/g, 'gate'));
 
-// Booleans
 const plane = 'Airbus A320neo';
 console.log(plane.includes('A320'));
 console.log(plane.startsWith('Airb'));
+
+const testNameSex = 'sanqiantiekuai-female';
+const [testName, testSex] = testNameSex.split('-');
+const newName = ['Ms', testName.toUpperCase()].join('.');
+console.log(newName);
+
+const message2 = 'Bad waether... All Departues Delayed... ';
+console.log(message2.repeat(5));
+

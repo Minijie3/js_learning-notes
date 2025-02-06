@@ -86,6 +86,19 @@ var: Function scope or global
 let/const: Block scope
 */
 (() => console.log('This will ALSO never run again'))();
+/*
+【IMPORTANT UNDERSTANDING NOTES】
+For the IIFE below:
+(function(){
+    console.log('A IIFE here.');
+})();
+→ equals to:
+const func = function(){
+    console.log('A IIFE here.');
+};
+func();
+which means that IIFE will also make a function scope. This is very important to understand closure.
+*/
 
 /*
 Closure = Function + Its lexical environment at creation time
@@ -97,17 +110,16 @@ even when executed outside that scope.
  * 2. Data Encapsulation: Enables private variables and modular code
  * 3. Memory Persistence: Referenced outer variables remain in memory
  * 4. Caveat: Potential memory leaks with improper usage
-
-【Common Use Cases】
  */
 
+//【Common Use Cases】
 // 1. Counter Example: Maintaining private state
 function createCounter() {
     let count = 0; // Private variable
     return function () {
         return ++count;
     };
-}
+};
 const counter = createCounter();
 console.log(counter()); // 1
 console.log(counter()); // 2
@@ -121,12 +133,10 @@ then looked for the closure → count was found.
 const calculator = (function () {
     // Private state
     let memory = 0;
-
     // Private method
     function logOperation(op) {
         console.log(`Performed operation: ${op}`);
-    }
-
+    };
     // Expose public API
     return {
         add: function (x) {
@@ -154,8 +164,8 @@ function setupButtons() {
                 console.log(`Clicked button ${index}`);
             });
         })(i);
-    }
-}
+    };
+};
 /*
 IMPORTANT EXPLAIN: Cognitive refresh of for loops and variable declarations
 【Use IIFE or let declaration in loops to capture iteration values】
@@ -177,6 +187,7 @@ document.getElementById(`btn-${i}`).addEventListener('click', ...);
 2. if write like those uncommented(IIFE):
 Cause the use of IIFE, each loop creates a new function scope. When the i declared by var is passed in
 as parameter, The event callback function forms a closure that captures the index of the current scope.
+This means that closure usually happen in a callback function.
 
 3. if write(use let):
 function modernSolution() {

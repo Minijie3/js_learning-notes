@@ -24,7 +24,7 @@ const keyDownFunc = function (event) {
 
 const main = function () {
     for (let i = 0; i < btnShow.length; i++)
-        btnShow[i].addEventListener('click', openModal);
+        btnShow[i].addEventListener('click', openModal);// Actually this refer to closure.
     btnClose.addEventListener('click', closeModal);
     overlay.addEventListener('click', closeModal);
     document.addEventListener('keydown', keyDownFunc);

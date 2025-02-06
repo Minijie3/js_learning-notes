@@ -148,7 +148,7 @@ And NOTICE that new sets(ITERABELS).
 */
 for (const item of testSet) console.log(item);// that's OK.
 const staff = ['manager', 'waiter', 'chef'];
-console.log([...new Set(staff)]);//set → array
+console.log([...new Set(staff)]);// set → array
 console.log(new Set('jonasschmedtmann'));// { 'j', 'o', 'n', 'a', 's', 'c', 'h', 'm', 'e', 'd', 't' }
 console.log(new Set('sanqiantiekuai is a nice woman').size);// count the unique letters in a string.
 

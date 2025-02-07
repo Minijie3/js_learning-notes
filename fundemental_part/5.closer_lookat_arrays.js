@@ -1,7 +1,5 @@
 'use strict'
 
-// simple methods
-
 /*
 slice is the same as strings, but notice that slice(a, b): 
 The position of the representative of a must be in front of the position of the representative of b.
@@ -55,3 +53,39 @@ console.log(arrAcc);// [ 15120, 24 ]
 
 // find methods is similar to filter, but only return the first element that satisfies the condition.
 console.log(testArr1.find(el => el >= 5));
+console.log(testArr1.findIndex(el => el >= 5));
+console.log(testArr1.lastIndexOf(5))// lastIndexOf don't recevie callback function.
+
+console.log(testArr1.some(el => el >= 5));// true
+console.log(testArr1.every(el => el >= 5));// false
+
+const testArr4 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+console.log(testArr4.flat());// [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
+const testArr5 = [[1, [2, 3]], 4, [5, [6, 7]]];
+console.log(testArr5.flat());
+console.log(testArr5.flat(2));// the parameter is the depth of the array
+
+const [testObj1, testObj2, testObj3] = [{ test: [1, 2, 3] }, { test: [4, 5, 6] }, { test: [7, 8, 9] }];
+const testObjs = [testObj1, testObj2, testObj3];
+console.log(testObjs.map(obj => obj.test))// [ [ 1, 2, 3 ], [ 4, 5, 6 ], [ 7, 8, 9 ] ]
+console.log(testObjs.flatMap(obj => obj.test));// [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
+
+// about sort: 
+/*
+return > 0, a, b
+return < 0, b, a
+*/
+const testArr6 = [1, 65, 88, -45, -35, 42];
+console.log(testArr6.sort((a, b) => a - b));// [ -45, -35, 1, 42, 65, 88 ]
+
+// more methods
+
+const testArr7 = new Array(7);// cannot use map() to fill this empty array
+console.log(testArr7.fill(1, 3, 5));// [ <3 empty items>, 1, 1, <2 empty items> ], 3, 5 → index
+console.log(testArr1.fill(1, 0, 4));// [1, 1, 1, 1, 5, 6, 7, 8, 9, 10]
+
+const testArr8 = Array.from({ length: 7 }, (_, index) => index + 1);
+// _ means unused variable, the parameter order is the same as map().
+console.log(testArr8);
+// from can also use to create a new array from DOM elements: Array.from(document.querySelectorAll('h1'));
+// and the arr created by from() is availabel to use map().

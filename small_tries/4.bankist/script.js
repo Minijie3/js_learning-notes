@@ -18,33 +18,46 @@ const btnLogin = document.querySelector('.login__btn');
 const btnTransfer = document.querySelector('.form__btn--transfer');
 const btnLoan = document.querySelector('.form__btn--loan');
 const btnClose = document.querySelector('.form__btn--close');
+const btnSort = document.querySelector('.btn--sort');
 
 const welcome = document.querySelector('.welcome');
+const loginDate = document.querySelector('.date');
 
 const usrnames = [];
 
 const computingUsername = function (data) {
     for (const key in data) {
-        const account = data[`${key}`];
-        account.username = account?.owner
+        const acc = data[`${key}`];
+        acc.username = acc?.owner
             .toLowerCase()
             .split(' ')
             .map(name => name[0])
-            .join('') + account.order;
-        usrnames.push(account.username);
+            .join('') + acc.order;
+        usrnames.push(acc.username);
     };
 };
 
-const displayMovements = function (movementsArr) {
+const displayMovements = function (acc) {
     containerMovements.innerHTML = '';
-    for (var i = 0; i < movementsArr.length; i++) {
+    for (var i = 0; i < acc.movements.length; i++) {
         (function (index) {
-            const type = movementsArr[index] > 0 ? 'deposit' : 'withdrawal';
+            const type = acc.movements[index] > 0 ? 'deposit' : 'withdrawal';
+            const date = new Date(acc.movementsDates[index].replaceAll(' ', ''));
+            const now = new Date();
+            const calcDaysPassed = (date1, date2) =>
+                Math.abs(date2 - date1) / (1000 * 60 * 60 * 24);
+            const daysDff = calcDaysPassed(date, now);
+            const unit = (acc.currency === 'EUR' && '€') || (acc.currency === 'USD' && '$');
+            let dateFmt;
+            if (daysDff === 0) dateFmt = `Today`;
+            else if (daysDff <= 7) dateFmt = `${daysDff} days ago`;
+            else dateFmt = new Intl.DateTimeFormat(acc.locale).format(date);
+
             const htmlAdd = `
         <div class="movements__row">
           <div class="movements__type movements__type--${type}">${index + 1} ${type}</div>
-          <div class="movements__date"></div>
-          <div class="movements__value">${movementsArr[index]}€</div>
+          <div class="movements__date">${dateFmt}</div>
+          <div class="movements__value">${acc.movements[index].toFixed(2) + unit}</div>
         </div>
       `;
             containerMovements.insertAdjacentHTML('afterbegin', htmlAdd);
@@ -52,40 +65,44 @@ const displayMovements = function (movementsArr) {
     };
 };// foreach method is also availabel
 
-const displayBalanceAndDetail = function (account) {
-    const crrBalance = account.movements.reduce((crrBalance, mov) => crrBalance + mov, 0);
-    balanceValue.textContent = crrBalance + '€';
-    const [valuein, valueout] = account.movements.reduce((sums, mov) => {
+const displayBalanceAndDetail = function (acc) {
+    const crrBalance = acc.movements.reduce((crrBalance, mov) => crrBalance + mov, 0);
+    const unit = (acc.currency === 'EUR' && '€') || (acc.currency === 'USD' && '$');
+    balanceValue.textContent = String(crrBalance) + unit;
+    const [valuein, valueout] = acc.movements.reduce((sums, mov) => {
         mov >= 0 && (sums[0] += mov) || (sums[1] += mov);
         return sums;
     }, [0, 0]);
-    const interest = account.movements
+    const interest = acc.movements
         .filter(mov => (mov >= 0))
-        .map(mov => mov * account.interestRate / 100)
+        .map(mov => mov * acc.interestRate / 100)
         .reduce((acc, cur) => acc + cur, 0);
-    valueIn.textContent = valuein + '€';
-    valueOut.textContent = Math.abs(valueout) + '€';
-    valueInterest.textContent = interest + '€';
+    valueIn.textContent = String(valuein.toFixed(2)) + unit;
+    valueOut.textContent = String(Math.abs(valueout).toFixed(2)) + unit;
+    valueInterest.textContent = String(interest.toFixed(2)) + unit;
 };
 
 const usrLogin = function (data) {
     const accounts = Object.values(data);
     let accLogin = undefined;
+    let sorted = false;
 
     btnLogin.addEventListener('click', function (event) {
         event.preventDefault();
         console.log('Someone is logining...');
 
         accLogin = accounts.find(acc => acc.username === usrLoginInput.value);
-        if (accLogin?.pin === Number(usrLoginPin.value)) {
+        if (accLogin?.pin === + usrLoginPin.value) {
             console.log('Login Successful: ' + accLogin.owner);
             usrLoginInput.value = usrLoginPin.value = '';
             containerApp.style.opacity = 100;
+            const now = new Date();
+            loginDate.textContent = new Intl.DateTimeFormat(accLogin.locale).format(now);
 
             welcome.textContent = `Welcome back, ${accLogin.owner.split(' ')[0]}`;
-            displayMovements(accLogin.movements);
+            displayMovements(accLogin);
             displayBalanceAndDetail(accLogin);
-        } else alert('Wrong Credentials.');
+        } else alert('The user name or password is incorrect');
     });
 
     btnTransfer.addEventListener('click', function (event) {
@@ -93,18 +110,18 @@ const usrLogin = function (data) {
         if (accLogin) {
             console.log('Transfering...');
             const receiverAcc = accounts.find(acc => acc.username === usrTransferTo.value);
-            const amount = Number(usrTransferAmount.value) || 0;
-            const balance = Number(balanceValue.textContent.slice(0, -1));
+            const amount = + usrTransferAmount.value || 0;
+            const balance = + balanceValue.textContent.slice(0, -1);
 
             if (receiverAcc && balance >= amount && amount > 0) {
                 receiverAcc.movements.push(amount);
                 accLogin.movements.push(-amount);
                 console.log(`${accLogin.owner} has transferred ${amount} to ${receiverAcc.owner}.`);
             }
-            else if (receiverAcc && balance < amount) console.log('Not enough balance.');
-            else if (receiverAcc && amount <= 0) console.log('Please enter a valid amount.');
-        } else alert('Please login first.');
-        displayMovements(accLogin.movements);
+            else if (receiverAcc && balance < amount) alert('Not enough balance.');
+            else if (receiverAcc && amount <= 0) alert('Please enter a valid amount.');
+        } else;
+        displayMovements(accLogin);
         displayBalanceAndDetail(accLogin);
     });
 
@@ -112,35 +129,61 @@ const usrLogin = function (data) {
         event.preventDefault();
         if (accLogin) {
             console.log('Loaning...');
-            const amount = Number(usrLoanAmount.value) || 0;
+            const amount = + usrLoanAmount.value || 0;
 
-            if (amount > 0) {
-                accLogin.movements.push(amount);
-                console.log('Loan Successful:' + accLogin.owner + 'has loaned' + amount + '€');
-            } else alert('Please enter a valid amount.');
-        } else alert('Please login first.');
-        displayMovements(accLogin.movements);
+            if (amount > 0 && accLogin.movements.some(mov => mov >= amount * 0.1)) {
+                accLogin.movements.push(Math.floor(amount));
+                console.log('Loan Successful:' + accLogin.owner + 'has loaned' + Math.floor(amount) + '€');
+            }
+            else if (!accLogin.movements.some(mov => mov >= amount * 0.1))
+                alert('You need to deposit at least ten percent of the amount you need to borrow in a given deposit.');
+            else alert('Please enter a valid amount.');
+        } else;
+        displayMovements(accLogin);
         displayBalanceAndDetail(accLogin);
+    });
+
+    btnSort.addEventListener('click', function (event) {
+        event.preventDefault();
+        if (accLogin && !sorted) {
+            const accLoginCopy = { ...accLogin };
+            const dataPairs = accLogin.movements.map((mov, index) => (
+                {
+                    mov,
+                    date: accLogin.movementsDates[index]
+                }
+            ));
+            dataPairs.sort((a, b) => a.mov - b.mov);// Closure
+            dataPairs.forEach((dataPair, index) => {
+                accLoginCopy.movements[index] = dataPair.mov;
+                accLoginCopy.movementsDates[index] = dataPair.date;
+            });
+            displayMovements(accLoginCopy);
+        } else;
     });
 
     btnClose.addEventListener('click', function (event) {
         event.preventDefault();
         if (accLogin) {
-            if (accLogin.username === usrCloseUsername.value && accLogin.pin === Number(usrClosePin.value)) {
+            if (accLogin.username === usrCloseUsername.value && accLogin.pin === + usrClosePin.value) {
                 console.log(accLogin.owner + 'has closed the account.');
                 containerApp.style.opacity = 0;
+                accLogin = undefined;
             };
-        } else alert('Please login first.');
+        } else;
     });
+};
+
+const main = function (data) {
+    computingUsername(data);
+    console.log(usrnames);
+    usrLogin(data);
 };
 
 // fetch is an asynchronous operation
 fetch('./accountData.json')
     .then(response => response.json())
     .then(data => {
-        computingUsername(data);
-        console.log(usrnames);
-
-        usrLogin(data);
+        main(data);
     })
     .catch(error => console.error('Error loading JSON:', error)); 

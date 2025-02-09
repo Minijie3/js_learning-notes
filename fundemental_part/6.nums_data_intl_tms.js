@@ -165,3 +165,6 @@ const calcDaysPassed = (date1, date2) =>
 
 const days1 = calcDaysPassed(new Date(2037, 3, 4), new Date(2037, 3, 14));
 console.log(days1);
+
+// The Intl and timer should be seen in small_tries\4.bankist\script.js, I don't think it's suitabel to
+// put it here.

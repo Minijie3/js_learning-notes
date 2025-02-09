@@ -22,8 +22,10 @@ const btnSort = document.querySelector('.btn--sort');
 
 const welcome = document.querySelector('.welcome');
 const loginDate = document.querySelector('.date');
+const timer = document.querySelector('.timer');
 
 const usrnames = [];
+let accLogin = undefined;
 
 const computingUsername = function (data) {
     for (const key in data) {
@@ -42,12 +44,15 @@ const displayMovements = function (acc) {
     for (var i = 0; i < acc.movements.length; i++) {
         (function (index) {
             const type = acc.movements[index] > 0 ? 'deposit' : 'withdrawal';
-            const date = new Date(acc.movementsDates[index].replaceAll(' ', ''));
+            const date = new Date(acc.movementsDates[index]);
             const now = new Date();
             const calcDaysPassed = (date1, date2) =>
-                Math.abs(date2 - date1) / (1000 * 60 * 60 * 24);
+                Math.floor(Math.abs(date2 - date1) / (1000 * 60 * 60 * 24));
             const daysDff = calcDaysPassed(date, now);
-            const unit = (acc.currency === 'EUR' && '€') || (acc.currency === 'USD' && '$');
+            const currencyFmt = new Intl.NumberFormat(acc.locale, {
+                style: 'currency',
+                currency: acc.currency,
+            }).format(acc.movements[index].toFixed(2));
             let dateFmt;
             if (daysDff === 0) dateFmt = `Today`;
             else if (daysDff <= 7) dateFmt = `${daysDff} days ago`;
@@ -57,7 +62,7 @@ const displayMovements = function (acc) {
         <div class="movements__row">
           <div class="movements__type movements__type--${type}">${index + 1} ${type}</div>
           <div class="movements__date">${dateFmt}</div>
-          <div class="movements__value">${acc.movements[index].toFixed(2) + unit}</div>
+          <div class="movements__value">${currencyFmt}</div>
         </div>
       `;
             containerMovements.insertAdjacentHTML('afterbegin', htmlAdd);
@@ -67,8 +72,6 @@ const displayMovements = function (acc) {
 
 const displayBalanceAndDetail = function (acc) {
     const crrBalance = acc.movements.reduce((crrBalance, mov) => crrBalance + mov, 0);
-    const unit = (acc.currency === 'EUR' && '€') || (acc.currency === 'USD' && '$');
-    balanceValue.textContent = String(crrBalance) + unit;
     const [valuein, valueout] = acc.movements.reduce((sums, mov) => {
         mov >= 0 && (sums[0] += mov) || (sums[1] += mov);
         return sums;
@@ -77,14 +80,40 @@ const displayBalanceAndDetail = function (acc) {
         .filter(mov => (mov >= 0))
         .map(mov => mov * acc.interestRate / 100)
         .reduce((acc, cur) => acc + cur, 0);
-    valueIn.textContent = String(valuein.toFixed(2)) + unit;
-    valueOut.textContent = String(Math.abs(valueout).toFixed(2)) + unit;
-    valueInterest.textContent = String(interest.toFixed(2)) + unit;
+    const currs = [crrBalance, valuein, valueout, interest];
+    const textContents = [balanceValue, valueIn, valueOut, valueInterest];
+    acc.balanceValue = crrBalance;
+    for (const [index, currency] of currs.entries()) {
+        const currencyFmt = new Intl.NumberFormat(acc.locale, {
+            style: 'currency',
+            currency: acc.currency,
+        }).format(currency.toFixed(2));
+        textContents[index].textContent = currencyFmt;
+    };
 };
 
+const logOut = function (acc) {
+    containerApp.style.opacity = 0;
+    welcome.textContent = 'Log in to get started';
+    accLogin = undefined;
+    console.log(`${acc.owner} logged out.`)
+}
+
+const timeOutClose = function (acc) {
+    let time = 300;
+    const timerClock = setInterval(() => {
+        const mins = String(Math.trunc(time / 60)).padStart(2, 0);
+        const secs = String(time % 60).padStart(2, 0);
+        timer.textContent = `${mins}:${secs}`;
+        time--;
+        if (time == -1) {
+            clearInterval(timerClock);
+            logOut(acc);
+        };
+    }, 1000);
+};
 const usrLogin = function (data) {
     const accounts = Object.values(data);
-    let accLogin = undefined;
     let sorted = false;
 
     btnLogin.addEventListener('click', function (event) {
@@ -102,6 +131,7 @@ const usrLogin = function (data) {
             welcome.textContent = `Welcome back, ${accLogin.owner.split(' ')[0]}`;
             displayMovements(accLogin);
             displayBalanceAndDetail(accLogin);
+            timeOutClose(accLogin);
         } else alert('The user name or password is incorrect');
     });
 
@@ -111,12 +141,14 @@ const usrLogin = function (data) {
             console.log('Transfering...');
             const receiverAcc = accounts.find(acc => acc.username === usrTransferTo.value);
             const amount = + usrTransferAmount.value || 0;
-            const balance = + balanceValue.textContent.slice(0, -1);
+            const balance = accLogin.balanceValue;
 
             if (receiverAcc && balance >= amount && amount > 0) {
                 receiverAcc.movements.push(amount);
+                receiverAcc.movementsDates.push(new Date().toISOString());
                 accLogin.movements.push(-amount);
-                console.log(`${accLogin.owner} has transferred ${amount} to ${receiverAcc.owner}.`);
+                accLogin.movementsDates.push(new Date().toISOString());
+                console.log(`${accLogin.owner} has transferred ${amount} to ${receiverAcc.owner} (${accLogin.currency}).`);
             }
             else if (receiverAcc && balance < amount) alert('Not enough balance.');
             else if (receiverAcc && amount <= 0) alert('Please enter a valid amount.');
@@ -132,15 +164,18 @@ const usrLogin = function (data) {
             const amount = + usrLoanAmount.value || 0;
 
             if (amount > 0 && accLogin.movements.some(mov => mov >= amount * 0.1)) {
-                accLogin.movements.push(Math.floor(amount));
-                console.log('Loan Successful:' + accLogin.owner + 'has loaned' + Math.floor(amount) + '€');
+                setTimeout(() => {
+                    accLogin.movements.push(Math.floor(amount));
+                    accLogin.movementsDates.push(new Date().toISOString());
+                    console.log('Loan Successful:' + accLogin.owner + 'has loaned ' + Math.floor(amount) + `(${accLogin.currency})`);
+                    displayMovements(accLogin);
+                    displayBalanceAndDetail(accLogin);
+                }, 2500);
             }
             else if (!accLogin.movements.some(mov => mov >= amount * 0.1))
                 alert('You need to deposit at least ten percent of the amount you need to borrow in a given deposit.');
             else alert('Please enter a valid amount.');
         } else;
-        displayMovements(accLogin);
-        displayBalanceAndDetail(accLogin);
     });
 
     btnSort.addEventListener('click', function (event) {
@@ -167,8 +202,7 @@ const usrLogin = function (data) {
         if (accLogin) {
             if (accLogin.username === usrCloseUsername.value && accLogin.pin === + usrClosePin.value) {
                 console.log(accLogin.owner + 'has closed the account.');
-                containerApp.style.opacity = 0;
-                accLogin = undefined;
+                logOut(accLogin);
             };
         } else;
     });

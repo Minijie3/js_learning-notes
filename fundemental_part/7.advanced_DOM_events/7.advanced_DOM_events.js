@@ -143,3 +143,26 @@ if set
 then click nav_link, it will be:
 NAV → LINK → CONTAINER: capture NAV then bubble
 */
+
+// DOM traversing
+// for example: for the 1st h1
+// Going downwards: child
+console.log(h1.querySelectorAll('.highlight'));// NodeList(2) [span.highlight, span.highlight]
+console.log(h1.childNodes);
+// NodeList(9) [text, comment, text, span.highlight, text, br, text, span.highlight, text]
+console.log(h1.children);
+// this will return a HTMLCollection, which is a live collection(auto update)
+console.log(h1.firstElementChild);
+console.log(h1.lastElementChild);
+h1.firstElementChild.style.color = 'white';
+h1.lastElementChild.style.color = 'orangered';
+// Going upwards: parents
+console.log(h1.parentNode);
+console.log(h1.parentElement);
+h1.closest('h1').style.background = 'var(--gradient-primary)';
+h1.closest('.header').style.background = 'var(--gradient-secondary)';
+// NOTICE here use background, not backgroundColor
+// Going sideways: DIRECT siblings
+console.log(h1.previousElementSibling);// null is right
+console.log(h1.nextElementSibling);// <h4>
+console.log(h1.parentElement.children);// HTMLCollection(4) [h1, h4, button.btn--text.btn--scroll-to, img.header__img]

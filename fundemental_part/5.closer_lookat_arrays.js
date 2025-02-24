@@ -84,8 +84,26 @@ const testArr7 = new Array(7);// cannot use map() to fill this empty array
 console.log(testArr7.fill(1, 3, 5));// [ <3 empty items>, 1, 1, <2 empty items> ], 3, 5 → index
 console.log(testArr1.fill(1, 0, 4));// [1, 1, 1, 1, 5, 6, 7, 8, 9, 10]
 
+/*
+Array.from(arrayLike[, mapFn[, thisArg]])
+arrayLike： This is a mandatory parameter representing the class array object or iterable object to be converted to an array. 
+    Class array objects refer to objects that have a length property and access elements by index; 
+    Iterable objects such as String, Set, Map, etc. can be used with for The object traversed by the loop.
+mapFn： This is an optional parameter and a mapping function that will be executed on each element of the new array. 
+    This function takes two parameters, namely the value of the current element and the index of the current element.
+thisArg： Also an optional parameter used to specify the value of this when executing the mapFn function.
+*/
 const testArr8 = Array.from({ length: 7 }, (_, index) => index + 1);
 // _ means unused variable, the parameter order is the same as map().
 console.log(testArr8);
 // from can also use to create a new array from DOM elements: Array.from(document.querySelectorAll('h1'));
 // and the arr created by from() is availabel to use map().
+const testArr9 = Array.from({ 0: 'a', 1: 'b', 2: 'c', length: 3 });
+console.log(testArr9);// [ 'a', 'b', 'c' ]
+console.log(Array.from('abc'));
+const obj = { multiplier: 2 };
+const numbersToMultiply = [1, 2, 3];
+const multipliedNumbers = Array.from(numbersToMultiply, function (num) {
+    return num * this.multiplier;
+}, obj);
+console.log(multipliedNumbers); // [2, 4, 6]
